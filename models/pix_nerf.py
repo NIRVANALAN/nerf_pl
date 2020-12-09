@@ -1,18 +1,17 @@
 import torch
 from torch import nn
-from .nerf_helper import Embedding
 
 
-class NeRF(nn.Module):
-    def __init__(self, D=8, W=256, in_channels_xyz=63, in_channels_dir=27, skips=[4]):
+class PixelNeRF(nn.Module):
+    def __init__(self, D=8, W=256, in_channels_xyz=39, in_channels_dir=3, skips=[4]):
         """
         D: number of layers for density (sigma) encoder
         W: number of hidden units in each layer
-        in_channels_xyz: number of input channels for xyz (3+3*10*2=63 by default)
-        in_channels_dir: number of input channels for direction (3+3*4*2=27 by default)
+        in_channels_xyz: number of input channels for xyz (3+3*6*2=39 by default)
+        in_channels_dir: number of input channels for direction (3+3*0*2=3 by default)
         skips: add skip connection in the Dth layer
         """
-        super(NeRF, self).__init__()
+        super(PixelNeRF, self).__init__()
         self.D = D
         self.W = W
         self.in_channels_xyz = in_channels_xyz
