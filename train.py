@@ -1,4 +1,6 @@
 import os, sys
+
+from torch._C import import_ir_module
 from opt import get_opts
 import torch
 from collections import defaultdict
@@ -7,8 +9,7 @@ from torch.utils.data import DataLoader
 from datasets import dataset_dict
 
 # models
-from models.nerf import Embedding, NeRF
-from models.rendering import render_rays
+from models import make_mlp, render_rays, Embedding
 
 # optimizer, scheduler, visualization
 from utils import *
@@ -26,7 +27,7 @@ from pytorch_lightning.logging import TestTubeLogger
 
 
 class NeRFSystem(LightningModule):
-    def __init__(self, hparams):
+    def __init__(self, hparams, conf):
         super(NeRFSystem, self).__init__()
         self.hparams = hparams
 
@@ -36,16 +37,26 @@ class NeRFSystem(LightningModule):
         self.embedding_dir = Embedding(3, hparams.freq_dir)  # 4 is the default number
         self.embeddings = [self.embedding_xyz, self.embedding_dir]
 
-        self.nerf_coarse = NeRF(
-            in_channels_xyz=3 * (2 * hparams.freq_xyz + 1),
-            in_channels_dir=3 * (2 * hparams.freq_dir + 1),
+        # self.nerf_coarse = NeRF(
+        #     in_channels_xyz=3 * (2 * hparams.freq_xyz + 1),
+        #     in_channels_dir=3 * (2 * hparams.freq_dir + 1),
+        # )
+        self.nerf_coarse = make_mlp(
+            conf,
+            d_xyz=3 * (2 * hparams.freq_xyz + 1),
+            d_dir=3 * (2 * hparams.freq_dir + 1),
         )
         self.models = [self.nerf_coarse]
         if hparams.N_importance > 0:
-            self.nerf_fine = NeRF(
-                in_channels_xyz=3 * (2 * hparams.freq_xyz + 1),
-                in_channels_dir=3 * (2 * hparams.freq_dir + 1),
+            self.nerf_fine = make_mlp(
+                conf,
+                d_xyz=3 * (2 * hparams.freq_xyz + 1),
+                d_dir=3 * (2 * hparams.freq_dir + 1),
             )
+            # self.nerf_fine = NeRF(
+            #     in_channels_xyz=3 * (2 * hparams.freq_xyz + 1),
+            #     in_channels_dir=3 * (2 * hparams.freq_dir + 1),
+            # )
             self.models += [self.nerf_fine]
 
     def decode_batch(self, batch):
@@ -160,8 +171,8 @@ class NeRFSystem(LightningModule):
 
 
 if __name__ == "__main__":
-    hparams = get_opts()
-    system = NeRFSystem(hparams)
+    hparams, conf = get_opts()
+    system = NeRFSystem(hparams, conf)
     checkpoint_callback = ModelCheckpoint(
         filepath=os.path.join(f"ckpts/{hparams.exp_name}", "{epoch:d}"),
         monitor="val/loss",

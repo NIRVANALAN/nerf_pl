@@ -1,9 +1,13 @@
 import argparse
+import pdb
+import pyhocon
+from pyhocon import ConfigFactory
 
 
 def get_opts():
     parser = argparse.ArgumentParser()
 
+    parser.add_argument("--config", help="config file path")
     parser.add_argument(
         "--root_dir",
         type=str,
@@ -141,5 +145,10 @@ def get_opts():
     ###########################
 
     parser.add_argument("--exp_name", type=str, default="exp", help="experiment name")
+    hparams = parser.parse_args()
+    conf = ConfigFactory.parse_file(hparams.config)
 
-    return parser.parse_args()
+    # for arg in vars(hparams):
+    #     conf[arg] = getattr(hparams, arg)
+
+    return hparams, conf

@@ -1,9 +1,19 @@
 import torch
 from torch import nn
 
+# from .model_util import make_encoder
+
 
 class PixelNeRF(nn.Module):
-    def __init__(self, D=8, W=256, in_channels_xyz=39, in_channels_dir=3, skips=[4]):
+    def __init__(
+        self,
+        D=8,
+        W=256,
+        in_channels_xyz=39,
+        in_channels_dir=3,
+        skips=[4],
+        encoder="resnet34",
+    ):
         """
         D: number of layers for density (sigma) encoder
         W: number of hidden units in each layer
@@ -17,6 +27,9 @@ class PixelNeRF(nn.Module):
         self.in_channels_xyz = in_channels_xyz
         self.in_channels_dir = in_channels_dir
         self.skips = skips
+
+        # Image Feature Encoder
+        # self.encoder = make_encoder(encoder)
 
         # xyz encoding layers
         for i in range(D):

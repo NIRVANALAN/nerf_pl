@@ -64,7 +64,7 @@ class NeRF(nn.Module):
         else:
             input_xyz = x
 
-        xyz_ = input_xyz
+        xyz_ = input_xyz  # * 8*4096 by default
         for i in range(self.D):
             if i in self.skips:
                 xyz_ = torch.cat([input_xyz, xyz_], -1)
@@ -82,6 +82,6 @@ class NeRF(nn.Module):
         dir_encoding = self.dir_encoding(dir_encoding_input)
         rgb = self.rgb(dir_encoding)
 
-        out = torch.cat([rgb, sigma], -1)  # [N, 5]
+        out = torch.cat([rgb, sigma], -1)  # [N, 4]
 
         return out
